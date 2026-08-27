@@ -35,8 +35,8 @@ jobs:
 
       - name: Add maintained rules
         run: |
-          mkdir -p dist/rewrite
-          cp source/* dist/rewrite/
+          mkdir -p dist/ext
+          cp source/* dist/ext/
 
       - name: Publish rel branch
         env:

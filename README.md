@@ -26,8 +26,8 @@ GitHub Actions 每天构建一次，并在 `main` 更新时自动构建。产物
 | `<tag>.srs`          | sing-box Binary Rule Set       |
 | `geosite.dat`        | V2Ray GeoSite，包含全部标签    |
 | `geosite-cn.dat`     | V2Ray GeoSite，仅包含 `loc-cn` |
-| `rewrite/*.quanx`    | Quantumult X 重写规则          |
-| `rewrite/*.sgmodule` | Surge 模块                     |
+| `ext/*.quanx`        | Quantumult X 重写规则          |
+| `ext/*.sgmodule`     | Surge 模块                     |
 
 下载地址格式：
 
@@ -39,8 +39,8 @@ https://github.com/lauyv/rdat/raw/rel/<文件路径>
 
 ```text
 https://github.com/lauyv/rdat/raw/rel/loc-cn.srs
-https://github.com/lauyv/rdat/raw/rel/rewrite/bili.quanx
-https://github.com/lauyv/rdat/raw/rel/rewrite/bili.sgmodule
+https://github.com/lauyv/rdat/raw/rel/ext/bili.quanx
+https://github.com/lauyv/rdat/raw/rel/ext/bili.sgmodule
 ```
 
 ## 项目结构
