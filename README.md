@@ -49,6 +49,8 @@ https://github.com/lauyv/rdat/raw/rel/rewrite/bili.sgmodule
 .
 ├── main.py                    # 规则生成器
 ├── source/                    # 手工维护的重写规则和模块
+├── js/                        # JS 脚本
+├── example/                   # 客户端配置示例
 ├── .github/workflows/build.yml
 ├── pyproject.toml
 └── uv.lock
