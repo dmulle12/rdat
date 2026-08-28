@@ -6,28 +6,36 @@
 
 规则数据来自
 [`v2fly/domain-list-community`](https://github.com/v2fly/domain-list-community)
-发布的 `dlc.dat_plain.yml`，生成以下三个标签：
+发布的 `dlc.dat_plain.yml`，以及官方
+[`gfwlist/gfwlist`](https://github.com/gfwlist/gfwlist) 明文规则，生成以下五个标签：
 
 - `reject`：广告及补充拦截域名
+- `gfw`：官方 GFWList 中的代理域名
+- `gfw-skip`：GFWList 白名单，以及补充直连域名
 - `loc-!cn`：非中国大陆域名
 - `loc-cn`：中国大陆及补充直连域名
 
-上游文件已经完成规则展开、属性过滤和去重，本项目负责提取、补充并转换为各客户端格式。
+`domain-list-community` 上游文件已经完成规则展开、属性过滤和去重。
+
+GFWList 的 URL 及通配符规则会转换为域名规则，白名单例外单独写入 `gfw-skip`。
+
+本项目负责提取、补充并转换为各客户端格式。
 
 ## 发布
 
 GitHub Actions 每天构建一次，并在 `main` 更新时自动构建。产物发布到 `rel` 分支；该分支每次发布都会重建，只保留最新结果。
 
-| 路径                 | 格式                           |
-| -------------------- | ------------------------------ |
-| `<tag>.yaml`         | Clash Rule Provider            |
-| `<tag>.list`         | Surge Domain Set               |
-| `<tag>.quanx`        | Quantumult X Filter            |
-| `<tag>.srs`          | sing-box Binary Rule Set       |
-| `geosite.dat`        | V2Ray GeoSite，包含全部标签    |
-| `geosite-cn.dat`     | V2Ray GeoSite，仅包含 `loc-cn` |
-| `ext/*.quanx`        | Quantumult X 重写规则          |
-| `ext/*.sgmodule`     | Surge 模块                     |
+| 路径              | 格式                                              |
+| ----------------- | ------------------------------------------------- |
+| `<tag>.yaml`      | Clash Rule Provider                               |
+| `<tag>.list`      | Surge Domain Set                                  |
+| `<tag>.quanx`     | Quantumult X Filter                               |
+| `<tag>.srs`       | sing-box Binary Rule Set                          |
+| `geosite.dat`     | V2Ray GeoSite，包含 `reject`、`loc-!cn`、`loc-cn` |
+| `geosite-cn.dat`  | V2Ray GeoSite，包含 `loc-cn`                      |
+| `geosite-gfw.dat` | V2Ray GeoSite，包含 `gfw`、`gfw-skip`             |
+| `ext/*.quanx`     | Quantumult X 重写规则                             |
+| `ext/*.sgmodule`  | Surge 模块                                        |
 
 下载地址格式：
 
@@ -51,6 +59,7 @@ https://github.com/lauyv/rdat/raw/rel/ext/bili.sgmodule
 ├── source/                    # 手工维护的重写规则和模块
 ├── js/                        # JS 脚本
 ├── example/                   # 客户端配置示例
+├── tests/                     # 规则解析测试
 ├── .github/workflows/build.yml
 ├── pyproject.toml
 └── uv.lock
