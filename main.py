@@ -15,7 +15,6 @@ import yaml
 # ═══════════════════════════════════════════════════════════════════════════════
 
 BLOCK_DOMAIN_SUFFIX = (
-    "tanx.com",
     "miaozhen.com",
     "tqt.weibo.cn",
     "qzs.gdtimg.com",
