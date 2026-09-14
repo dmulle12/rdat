@@ -86,28 +86,34 @@ GFWLIST_TAGS = ("gfw", "gfw-skip")
 
 
 def parse_dlc_plain(url: str, tags: tuple[str, ...]) -> GeoSiteRules:
-    """Extract flattened tags, supplementing geolocation-cn with all @cn rules."""
+    """Extract flattened tags and supplement them with matching global attributes."""
     log.info("Downloading %s", url)
     with urlopen(url) as response:
         lists = yaml.safe_load(response).get("lists", [])
 
     remaining = set(tags)
     result: GeoSiteRules = {}
-    cn_rules: DomainResult = ([], [], [], [])
-    collect_cn = "geolocation-cn" in tags
+    attribute_targets = {
+        attribute: tag
+        for attribute, tag in (("cn", "geolocation-cn"), ("ads", "category-ads-all"))
+        if tag in tags
+    }
+    attribute_rules: GeoSiteRules = {
+        attribute: ([], [], [], []) for attribute in attribute_targets
+    }
     rule_indexes = {"full": 0, "domain": 1, "keyword": 2, "regexp": 3}
     for item in lists:
         tag = item.get("name")
         selected = tag in remaining
-        if not selected and not collect_cn:
+        if not selected and not attribute_targets:
             continue
 
         values: DomainResult = ([], [], [], [])
         for raw_rule in item.get("rules", []):
             # Upstream serializes attributes as :@attr1,@attr2.
             rule, _, attributes = raw_rule.partition(":@")
-            is_cn = collect_cn and "cn" in attributes.split(",@")
-            if not selected and not is_cn:
+            matching_attributes = attribute_targets.keys() & set(attributes.split(",@"))
+            if not selected and not matching_attributes:
                 continue
             rule_type, separator, value = rule.partition(":")
             if not separator or rule_type not in rule_indexes:
@@ -115,19 +121,19 @@ def parse_dlc_plain(url: str, tags: tuple[str, ...]) -> GeoSiteRules:
             index = rule_indexes[rule_type]
             if selected:
                 values[index].append(value)
-            if is_cn:
-                cn_rules[index].append(value)
+            for attribute in matching_attributes:
+                attribute_rules[attribute][index].append(value)
 
         if selected:
             result[tag] = values
             remaining.remove(tag)
-        if not remaining and not collect_cn:
+        if not remaining and not attribute_targets:
             break
 
     if remaining:
         raise ValueError(f"Missing DLC tags: {', '.join(sorted(remaining))}")
-    if collect_cn:
-        for destination, additions in zip(result["geolocation-cn"], cn_rules):
+    for attribute, target in attribute_targets.items():
+        for destination, additions in zip(result[target], attribute_rules[attribute]):
             destination[:] = dict.fromkeys(destination + additions)
     return result
 

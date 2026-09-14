@@ -11,6 +11,52 @@ from main import parse_dlc_plain, parse_gfwlist_text, release_quanx_file
 
 
 class ParseDLCTests(unittest.TestCase):
+    def test_collects_ads_and_keeps_shared_cn_rules_in_both_lists(self):
+        ad_rules = [
+            "full:shared.example:@cn,@ads",
+            "domain:ads.example:@ads,@other",
+            "keyword:advertising:@ads",
+            r"regexp:^ads[0-9]+\.example$:@ads",
+        ]
+        source = {
+            "lists": [
+                {"name": "category-ads-all", "rules": ["domain:base.example"]},
+                {"name": "geolocation-cn", "rules": []},
+                {
+                    "name": "vendor",
+                    "rules": ad_rules
+                    + [
+                        "full:negated.example:@!ads",
+                        "full:similar.example:@ads2",
+                        "full:untagged.example",
+                    ],
+                },
+                {"name": "duplicate", "rules": ad_rules},
+            ]
+        }
+        for tags in (("category-ads-all",), ("category-ads-all", "geolocation-cn")):
+            with (
+                self.subTest(tags=tags),
+                patch(
+                    "main.urlopen",
+                    return_value=BytesIO(yaml.safe_dump(source).encode()),
+                ),
+            ):
+                rules = parse_dlc_plain("fixture", tags)
+            self.assertEqual(
+                rules["category-ads-all"],
+                (
+                    ["shared.example"],
+                    ["base.example", "ads.example"],
+                    ["advertising"],
+                    [r"^ads[0-9]+\.example$"],
+                ),
+            )
+            if "geolocation-cn" in tags:
+                self.assertEqual(
+                    rules["geolocation-cn"], (["shared.example"], [], [], [])
+                )
+
     def test_collects_cn_from_all_lists_and_deduplicates_each_rule_type(self):
         apple = "full:init-p01st.push.apple.com:@cn"
         source = {
@@ -112,8 +158,7 @@ plain.example
 
         self.assertEqual(
             output,
-            "host, exact.example, proxy\n"
-            "host-suffix, suffix.example, proxy\n",
+            "host, exact.example, proxy\nhost-suffix, suffix.example, proxy\n",
         )
 
 

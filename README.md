@@ -9,7 +9,7 @@
 发布的 `dlc.dat_plain.yml`，以及官方
 [`gfwlist/gfwlist`](https://github.com/gfwlist/gfwlist) 明文规则，生成以下五个标签：
 
-- `reject`：广告及补充拦截域名
+- `reject`：合并 `category-ads-all`、所有列表中带 `@ads` 属性的规则，以及手工拦截补充
 - `gfw`：官方 GFWList 中的代理域名
 - `gfw-skip`：GFWList 白名单，以及补充直连域名
 - `loc-!cn`：非中国大陆域名
@@ -21,7 +21,7 @@ GFWList 的 URL 及通配符规则会转换为域名规则，白名单例外单�
 
 本项目负责提取、补充并转换为各客户端格式。
 
-`@cn` 按完整属性名匹配，不包含 `@!cn`。合并后去重；`@cn` 不保证服务器位于境内。使用 `loc-cn` 和 `loc-!cn` 时，应将 `loc-cn` 的直连规则放在 `loc-!cn` 的代理规则之前，处理可能存在的域名覆盖重叠。
+`@cn` 和 `@ads` 均按完整属性名匹配，不包含 `@!cn`、`@!ads` 等其他属性，合并后去重。`@cn` 不保证服务器位于境内。同时带有 `@cn` 和 `@ads` 的规则会进入两个集合。客户端应按 `reject` → `loc-cn` → `loc-!cn` 的顺序匹配，让广告拦截优先于直连，并处理可能存在的域名覆盖重叠。
 
 ## 发布
 
