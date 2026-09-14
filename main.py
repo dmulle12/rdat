@@ -86,42 +86,49 @@ GFWLIST_TAGS = ("gfw", "gfw-skip")
 
 
 def parse_dlc_plain(url: str, tags: tuple[str, ...]) -> GeoSiteRules:
-    """Extract flattened tags from domain-list-community's official YAML."""
+    """Extract flattened tags, supplementing geolocation-cn with all @cn rules."""
     log.info("Downloading %s", url)
     with urlopen(url) as response:
         lists = yaml.safe_load(response).get("lists", [])
 
     remaining = set(tags)
     result: GeoSiteRules = {}
+    cn_rules: DomainResult = ([], [], [], [])
+    collect_cn = "geolocation-cn" in tags
+    rule_indexes = {"full": 0, "domain": 1, "keyword": 2, "regexp": 3}
     for item in lists:
         tag = item.get("name")
-        if tag not in remaining:
+        selected = tag in remaining
+        if not selected and not collect_cn:
             continue
 
         values: DomainResult = ([], [], [], [])
-        domain, domain_suffix, domain_keyword, domain_regex = values
-        destinations = {
-            "full": domain,
-            "domain": domain_suffix,
-            "keyword": domain_keyword,
-            "regexp": domain_regex,
-        }
         for raw_rule in item.get("rules", []):
-            # Attributes follow the unambiguous ":@" delimiter. They have
-            # already served their purpose during upstream list expansion.
-            rule = raw_rule.partition(":@")[0]
+            # Upstream serializes attributes as :@attr1,@attr2.
+            rule, _, attributes = raw_rule.partition(":@")
+            is_cn = collect_cn and "cn" in attributes.split(",@")
+            if not selected and not is_cn:
+                continue
             rule_type, separator, value = rule.partition(":")
-            if not separator or rule_type not in destinations:
+            if not separator or rule_type not in rule_indexes:
                 raise ValueError(f"Unsupported DLC rule: {raw_rule!r}")
-            destinations[rule_type].append(value)
+            index = rule_indexes[rule_type]
+            if selected:
+                values[index].append(value)
+            if is_cn:
+                cn_rules[index].append(value)
 
-        result[tag] = values
-        remaining.remove(tag)
-        if not remaining:
+        if selected:
+            result[tag] = values
+            remaining.remove(tag)
+        if not remaining and not collect_cn:
             break
 
     if remaining:
         raise ValueError(f"Missing DLC tags: {', '.join(sorted(remaining))}")
+    if collect_cn:
+        for destination, additions in zip(result["geolocation-cn"], cn_rules):
+            destination[:] = dict.fromkeys(destination + additions)
     return result
 
 
