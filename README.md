@@ -1,51 +1,51 @@
 # rdat
 
-自动生成并发布适用于 Clash、Surge、Quantumult X、sing-box 和 V2Ray GeoSite 的域名规则。
+Automatically generates and publishes domain rule sets for Clash, Surge, Quantumult X, sing-box, and V2Ray GeoSite.
 
-## 规则
+## Rules
 
-规则数据来自
-[`v2fly/domain-list-community`](https://github.com/v2fly/domain-list-community)
-发布的 `dlc.dat_plain.yml`，以及官方
-[`gfwlist/gfwlist`](https://github.com/gfwlist/gfwlist) 明文规则，生成以下五个标签：
+Rule data comes from `dlc.dat_plain.yml` published by
+[`v2fly/domain-list-community`](https://github.com/v2fly/domain-list-community),
+plus the plain-text rules from the official
+[`gfwlist/gfwlist`](https://github.com/gfwlist/gfwlist), and is grouped into these five tags:
 
-- `reject`：合并 `category-ads-all`、所有列表中带 `@ads` 属性的规则，以及手工拦截补充
-- `gfw`：官方 GFWList 中的代理域名
-- `gfw-skip`：GFWList 白名单，以及补充直连域名
-- `loc-!cn`：非中国大陆域名
-- `loc-cn`：面向中国大陆网络的直连规则，合并 `geolocation-cn`、所有列表中带 `@cn` 属性的规则，以及手工直连补充
+- `reject`: merged from `category-ads-all`, all rules with the `@ads` attribute, plus manual ad-block additions
+- `gfw`: proxy domains from the official GFWList
+- `gfw-skip`: GFWList whitelist plus additional direct-connect domains
+- `loc-!cn`: domains outside mainland China
+- `loc-cn`: direct-connect rules for mainland China networks, merged from `geolocation-cn`, all rules with the `@cn` attribute, plus manual direct-connect additions
 
-`domain-list-community` 上游文件已经完成规则展开、属性过滤和去重。
+The upstream `domain-list-community` file already performs rule expansion, attribute filtering, and deduplication.
 
-GFWList 的 URL 及通配符规则会转换为域名规则，白名单例外单独写入 `gfw-skip`。
+URL and wildcard rules in GFWList are converted into domain rules, while whitelist exceptions are written separately into `gfw-skip`.
 
-本项目负责提取、补充并转换为各客户端格式。
+This project extracts, supplements, and converts those rules into client-specific formats.
 
-`@cn` 和 `@ads` 均按完整属性名匹配，不包含 `@!cn`、`@!ads` 等其他属性，合并后去重。`@cn` 不保证服务器位于境内。同时带有 `@cn` 和 `@ads` 的规则会进入两个集合。客户端应按 `reject` → `loc-cn` → `loc-!cn` 的顺序匹配，让广告拦截优先于直连，并处理可能存在的域名覆盖重叠。
+`@cn` and `@ads` are matched by full attribute name only, excluding other attributes such as `@!cn` and `@!ads`, and results are deduplicated after merging. `@cn` does not guarantee that the server is physically located in mainland China. Rules that contain both `@cn` and `@ads` are included in both sets. Clients should match in this order: `reject` → `loc-cn` → `loc-!cn`, so ad blocking takes priority over direct connection and any domain overlap is handled correctly.
 
-## 发布
+## Release
 
-GitHub Actions 每天构建一次，并在 `main` 更新时自动构建。产物发布到 `rel` 分支；该分支每次发布都会重建，只保留最新结果。
+GitHub Actions builds once per day and also builds automatically when `main` is updated. Artifacts are published to the `rel` branch, which is rebuilt on each release and only keeps the latest output.
 
-| 路径              | 格式                                              |
-| ----------------- | ------------------------------------------------- |
-| `<tag>.yaml`      | Clash Rule Provider                               |
-| `<tag>.list`      | Surge Domain Set                                  |
-| `<tag>.quanx`     | Quantumult X Filter                               |
-| `<tag>.srs`       | sing-box Binary Rule Set                          |
-| `geosite.dat`     | V2Ray GeoSite，包含 `reject`、`loc-!cn`、`loc-cn` |
-| `geosite-cn.dat`  | V2Ray GeoSite，包含 `loc-cn`                      |
-| `geosite-gfw.dat` | V2Ray GeoSite，包含 `gfw`、`gfw-skip`             |
-| `ext/*.quanx`     | Quantumult X 重写规则                             |
-| `ext/*.sgmodule`  | Surge 模块                                        |
+| Path              | Format                                       |
+| ----------------- | -------------------------------------------- |
+| `<tag>.yaml`      | Clash Rule Provider                          |
+| `<tag>.list`      | Surge Domain Set                             |
+| `<tag>.quanx`     | Quantumult X Filter                          |
+| `<tag>.srs`       | sing-box Binary Rule Set                     |
+| `geosite.dat`     | V2Ray GeoSite, includes `reject`, `loc-!cn`, `loc-cn` |
+| `geosite-cn.dat`  | V2Ray GeoSite, includes `loc-cn`             |
+| `geosite-gfw.dat` | V2Ray GeoSite, includes `gfw`, `gfw-skip`    |
+| `ext/*.quanx`     | Quantumult X rewrite rules                   |
+| `ext/*.sgmodule`  | Surge modules                                |
 
-下载地址格式：
+Download URL format:
 
 ```text
-https://github.com/lauyv/rdat/raw/rel/<文件路径>
+https://github.com/lauyv/rdat/raw/rel/<file-path>
 ```
 
-例如：
+For example:
 
 ```text
 https://github.com/lauyv/rdat/raw/rel/loc-cn.srs
@@ -53,28 +53,28 @@ https://github.com/lauyv/rdat/raw/rel/ext/bili.quanx
 https://github.com/lauyv/rdat/raw/rel/ext/bili.sgmodule
 ```
 
-## 项目结构
+## Project structure
 
 ```text
 .
-├── main.py                    # 规则生成器
-├── source/                    # 手工维护的重写规则和模块
-├── js/                        # JS 脚本
-├── example/                   # 客户端配置示例
-├── tests/                     # 规则解析测试
+├── main.py                    # Rule generator
+├── source/                    # Manually maintained rewrite rules and modules
+├── js/                        # JavaScript scripts
+├── example/                   # Client configuration examples
+├── tests/                     # Rule parsing tests
 ├── .github/workflows/build.yml
 ├── pyproject.toml
 └── uv.lock
 ```
 
-## 本地构建
+## Build locally
 
-需要 Python 3.12、[uv](https://docs.astral.sh/uv/) 和
-[sing-box](https://sing-box.sagernet.org/)。
+Requires Python 3.12, [uv](https://docs.astral.sh/uv/), and
+[sing-box](https://sing-box.sagernet.org/).
 
 ```bash
 uv sync
 uv run python main.py
 ```
 
-构建产物位于 `dist/`。
+Build artifacts are output to `dist/`.
